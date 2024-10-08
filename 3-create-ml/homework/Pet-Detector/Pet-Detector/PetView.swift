@@ -33,7 +33,7 @@
 import SwiftUI
 import PhotosUI
 
-struct FacesView: View {
+struct PetView: View {
   @StateObject var viewModel: ImageViewModel
   
   var body: some View {
@@ -43,7 +43,7 @@ struct FacesView: View {
           .resizable()
           .aspectRatio(contentMode: .fit)
           
-          Button("Detect Faces") {
+          Button("Identify Pet") {
               viewModel.identifyPet()
           }
           .padding()
@@ -57,6 +57,7 @@ struct FacesView: View {
                 Text("No image available")
             }
         }
+        // >>> Add text here for pet detection/classification
     }
     .padding()
   }
