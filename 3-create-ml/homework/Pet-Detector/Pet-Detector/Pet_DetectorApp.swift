@@ -15,7 +15,7 @@ struct Pet_DetectorApp: App {
     WindowGroup {
       NavigationView {
         TabView {
-          PetView(viewModel: .init(photoPickerViewModel: photoPickerViewModel))
+            PetView(viewModel: .init(photoPickerViewModel: photoPickerViewModel))
         }.navigationTitle("Pet Identification")
           .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {

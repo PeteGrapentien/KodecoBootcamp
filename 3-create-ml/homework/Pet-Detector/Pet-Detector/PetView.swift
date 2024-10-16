@@ -33,10 +33,13 @@
 import SwiftUI
 import PhotosUI
 
-struct PetView: View {
-  @StateObject var viewModel: ImageViewModel
+public struct PetView: View {
+    @StateObject var viewModel: ImageClassifierViewModel
+    @State var buttonClickToggle = false
+    @State var prediction: [String: String] = [String: String]()
+    var petIdentifier = PetIdentifier()
   
-  var body: some View {
+  public var body: some View {
     VStack {
         if let image = viewModel.photoPickerViewModel.selectedPhoto?.image {
         Image(uiImage: image)
@@ -44,9 +47,17 @@ struct PetView: View {
           .aspectRatio(contentMode: .fit)
           
           Button("Identify Pet") {
-              viewModel.identifyPet()
+              if let image = viewModel.photoPickerViewModel.selectedPhoto?.image {
+                  viewModel.setImage(newImage: image)
+                  identifyPet(image: image)
+              }
           }
           .padding()
+            
+        HStack {
+            Text(prediction["prediction"] ?? "Nothing")
+            Text(prediction["accuracy"] ?? "-1")
+        }
         } else {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
@@ -57,8 +68,27 @@ struct PetView: View {
                 Text("No image available")
             }
         }
-        // >>> Add text here for pet detection/classification
     }
     .padding()
   }
+    
+    func identifyPet(image: UIImage) {
+        let resizedImage = resizeImage(image)
+        DispatchQueue.global(qos: .userInteractive).async {
+            petIdentifier.classify(image: resizedImage ?? image) { petPrediction, confidence in
+              var conf = confidence ?? -1
+              prediction["prediction"] = petPrediction
+              prediction["accuracy"] = String(conf)
+          }
+        }
+    }
+    
+    func resizeImage(_ image: UIImage) -> UIImage? {
+      UIGraphicsBeginImageContext(CGSize(width: 224, height: 224))
+      image.draw(in: CGRect(x: 0, y: 0, width: 224, height: 224))
+      let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+      UIGraphicsEndImageContext()
+      return resizedImage
+    }
 }
+
