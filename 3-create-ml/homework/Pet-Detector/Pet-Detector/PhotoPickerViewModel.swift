@@ -67,4 +67,11 @@ class PhotoPickerViewModel: ObservableObject {
   func selectPhoto(_ photo: UIImage) {
     selectedPhoto = Photo(image: photo)
   }
+    
+    func getSelectedPhoto() -> UIImage {
+        guard let photo = self.selectedPhoto else {
+            return UIImage()
+        }
+        return photo.image
+    }
 }
