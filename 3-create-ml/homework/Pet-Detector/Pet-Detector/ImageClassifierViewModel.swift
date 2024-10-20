@@ -35,17 +35,57 @@ import Combine
 import Vision
 import OSLog
 
-class ImageViewModel: ObservableObject {
+@MainActor
+class ImageClassifierViewModel: ObservableObject {
     // Shared PhotoPickerViewModel
     @Published var photoPickerViewModel: PhotoPickerViewModel
-    
     @Published var errorMessage: String? = nil
+    
+    private var petIdentifier = PetIdentifier()
+    private var petImage: UIImage?
+    
+    @State var petPrediction: String = "No value"
+    @State var accuracy: String = "0.0"
   
     init(photoPickerViewModel: PhotoPickerViewModel) {
         self.photoPickerViewModel = photoPickerViewModel
+        self.petImage = photoPickerViewModel.selectedPhoto?.image
     }
     
-    func identifyPet() {
-        print(">>> Do image recognition here.")
+    func setImage(newImage: UIImage) {
+        self.petImage = newImage
+    }
+    
+    func identifyPet() -> [String: String] {
+        var predictionDictionary = [String: String]()
+        if let image = self.petImage {
+            let resizedImage = resizeImage(image)
+            DispatchQueue.global(qos: .userInteractive).async {
+              self.petIdentifier.classify(image: resizedImage ?? image) { [weak self] prediction, confidence in
+//                  self?.petPrediction = prediction ?? "Failed to set prediction"
+                  var conf = confidence ?? -1
+//                  self?.accuracy = String(conf)
+                  predictionDictionary["prediction"] = prediction
+                  predictionDictionary["accuracy"] = String(conf)
+              }
+            }
+        }
+        return predictionDictionary
+    }
+    
+    func reset() {
+      DispatchQueue.main.async {
+        self.petImage = nil
+        self.petPrediction = ""
+        self.accuracy = ""
+      }
+    }
+    
+    private func resizeImage(_ image: UIImage) -> UIImage? {
+      UIGraphicsBeginImageContext(CGSize(width: 224, height: 224))
+      image.draw(in: CGRect(x: 0, y: 0, width: 224, height: 224))
+      let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+      UIGraphicsEndImageContext()
+      return resizedImage
     }
 }
